@@ -7,6 +7,7 @@ class Upload extends CI_Controller
     {
         parent::__construct();
         $this->load->helper(array('form', 'url'));
+        $this->load->library('image_lib');
     }
 
     public function index()
@@ -31,7 +32,24 @@ class Upload extends CI_Controller
         } else {
             $data = array('upload_data' => $this->upload->data());
 
+            //resize
+            $this->resize($data['upload_data']['full_path'], $data['upload_data']['file_name']);
+
             $this->load->view('upload_success', $data);
         }
+    }
+
+    public function resize($path, $file)
+    {
+        $config['image_library'] = 'gd2';
+        $config['source_image'] = $path;
+        $config['create_thumb'] = TRUE;
+        $config['maintain_ratio'] = TRUE;
+        $config['width'] = 150;
+        $config['height'] = 75;
+        $config['new_image'] = './uploads/' . $file;
+
+        $this->image_lib->initialize($config);
+        $this->image_lib->resize();
     }
 }

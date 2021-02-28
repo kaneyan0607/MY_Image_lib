@@ -124,7 +124,7 @@ class Image_func
 
 
 	/**
-	 * 画像保存
+	 * 画像保存(リサイズ処理も含む)
 	 *
 	 * @access		public
 	 * @param		$fileData		パラメータ
@@ -136,6 +136,7 @@ class Image_func
 
 		//ファイルのデコード
 		$decode_Data = base64_decode($fileData);
+		$param = array();
 
 		//画像保存先（サブディレクトリの指定が無い場合は空白がくる）
 		if ($this->sub_dir_name === "") {
@@ -190,11 +191,12 @@ class Image_func
 		}
 
 		if (!($config === FALSE)) {
-			//処理を施すもとになる画像の ファイル名/パス を指定します。パスは、URLではなく、サーバの相対、または、絶対パスを指定する必要があります。
+			//処理を施すもとになる画像の ファイル名/パス を指定。パスは、URLではなく、サーバの相対、または、絶対パスを指定する必要。
 			$config['source_image'] = $file_path;
 
-			//次の設定項目にパスまたは新しいファイル名(あるいはその両方)を指定すると、 リサイズメソッドでは画像ファイルのコピーが作成されます(元画像はそのまま保存されます)
+			//次の設定項目にパスまたは新しいファイル名(あるいはその両方)を指定すると、 リサイズメソッドでは画像ファイルのコピーが作成される(元画像はそのまま保存)
 			if (!empty($config['new_image'])) {
+				$config['new_image_path'] = $config['new_image'];
 				$config['new_image'] = $config['new_image'] . $file_name;
 			}
 			//画像リサイズ
@@ -202,9 +204,106 @@ class Image_func
 			echo '画像リサイズ処理';
 		}
 
+		if (empty($config['new_image'])) {
+			if (empty($config['thumb_marker'])) {
+				// echo 'なんの設定もされてないサムネパス';
+				$thumb_path = $image_path . $this->file_name . '_thumb' . "." . $this->type;
+			} else {
+				// echo 'サムネ名前を設定したサムネパス';
+				$thumb_path = $image_path . $this->file_name . $config['thumb_marker'] . "." . $this->type;
+			}
+			//もしも新しい保存場所にサムネを保存してた場合
+		} else {
+			if (empty($config['thumb_marker'])) {
+				// echo '新しい保存場所を指定しているサムネパス';
+				$thumb_path = $config['new_image_path'] . $this->file_name . '_thumb' . "." . $this->type;
+			} else {
+				// echo '新しい保存場所を指定してサムネ名もしているサムネパス4';
+				$thumb_path = $config['new_image_path'] . $this->file_name . $config['thumb_marker'] . "." . $this->type;
+			}
+		}
+
 		$param = [
 			'full_path' => $file_path,
+			'thumb_path' => $thumb_path
+		];
+
+		return $param;
+	}
+
+	/**
+	 * 画像保存(リサイズ処理しない。コントローラで再度リサイズを呼び出すタイプ)
+	 *
+	 * @access		public
+	 * @param		$fileData		パラメータ
+	 * @param		$config			リサイズ処理
+	 * @return		$path			画像ファイル名
+	 */
+	public function save_image2($fileData)
+	{
+
+		//ファイルのデコード
+		$decode_Data = base64_decode($fileData);
+
+		//画像保存先（サブディレクトリの指定が無い場合は空白がくる）
+		if ($this->sub_dir_name === "") {
+			$image_path = $this->img_path_root . "/";
+		} else {
+			$md = $this->sub_dir_name;
+			$image_path = $this->img_path_root . "/" . $md . "/";
+		}
+
+		// ディレクトリ確認
+		if (!file_exists($image_path)) {
+			$res = mkdir($image_path, 0777, TRUE);
+		}
+
+		//もしもファイル名の指定が無ければランダムファイル名を命名
+		if ($this->file_name === "") {
+			// ランダムファイル名
+			$random_name = $this->_makeRandStr(8);
+			$this->set_file_name($random_name);
+		}
+
+		// 拡張子判定
+		//もしも拡張子の指定がなければ拡張子を取得
+		if ($this->type === "") {
+			// finfo_bufferでMIMEタイプを取得
+			$finfo = finfo_open(FILEINFO_MIME_TYPE);
+			$mime_type = finfo_buffer($finfo, $decode_Data);
+
+			//MIMEタイプをキーとした拡張子の配列
+			$extensions = [
+				'image/gif' => 'gif',
+				'image/jpeg' => 'jpg',
+				'image/png' => 'png',
+				'image/tif' => 'tif',
+				'image/heic' => 'heic'
+			];
+
+			$type = $extensions[$mime_type];
+			$this->file_type($type);
+		}
+
+		//パス、ファイル名、拡張子からフルパスを作成
+		$file_path = $image_path . $this->file_name . "." . $this->type;
+		$file_name = $this->file_name . "." . $this->type;
+		// ファイル保存
+		$res = 0;
+		$res = file_put_contents($file_path, $decode_Data);
+
+		if ($res == 0) {
+			// TODO:エラー
+			return FALSE;
+			exit;
+		}
+
+		$param = [
+			'full_path' => $file_path,
+			'image_path' => $image_path,
 			'file_name' => $file_name,
+			'base_name' => $this->file_name,
+			'type' => $this->type
 		];
 
 		return $param;

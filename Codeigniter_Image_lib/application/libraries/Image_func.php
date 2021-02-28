@@ -66,6 +66,9 @@ class Image_func
 
 		//ファイル名
 		$this->file_name = "";
+
+		//image_libライブラリをロード
+		$this->CI = &get_instance();
 	}
 
 	/**
@@ -125,9 +128,10 @@ class Image_func
 	 *
 	 * @access		public
 	 * @param		$fileData		パラメータ
+	 * @param		$config			リサイズ処理
 	 * @return		$path			画像ファイル名
 	 */
-	public function save_image($fileData)
+	public function save_image($fileData, $config = FALSE)
 	{
 
 		//ファイルのデコード
@@ -174,18 +178,36 @@ class Image_func
 		}
 
 		//パス、ファイル名、拡張子からフルパスを作成
-		$filename = $image_path . $this->file_name . "." . $this->type;
-
+		$file_path = $image_path . $this->file_name . "." . $this->type;
+		$file_name = $this->file_name . "." . $this->type;
 		// ファイル保存
 		$res = 0;
-		$res = file_put_contents($filename, $decode_Data);
+		$res = file_put_contents($file_path, $decode_Data);
 
 		if ($res == 0) {
 			// TODO:エラー
 			return "";
 		}
 
-		return $filename;
+		if (!($config === FALSE)) {
+			//処理を施すもとになる画像の ファイル名/パス を指定します。パスは、URLではなく、サーバの相対、または、絶対パスを指定する必要があります。
+			$config['source_image'] = $file_path;
+
+			//次の設定項目にパスまたは新しいファイル名(あるいはその両方)を指定すると、 リサイズメソッドでは画像ファイルのコピーが作成されます(元画像はそのまま保存されます)
+			if (!empty($config['new_image'])) {
+				$config['new_image'] = $config['new_image'] . $file_name;
+			}
+			//画像リサイズ
+			$this->resize2($config);
+			echo '画像リサイズ処理';
+		}
+
+		$param = [
+			'full_path' => $file_path,
+			'file_name' => $file_name,
+		];
+
+		return $param;
 	}
 
 	/**
@@ -203,5 +225,19 @@ class Image_func
 			$r_str .= $str[rand(0, count($str) - 1)];
 		}
 		return $r_str;
+	}
+
+
+	/**
+	 * 画像リサイズ
+	 *
+	 * @access		public
+	 * @param		$path リサイズ元画像パス
+	 * @param       $file リサイズ元画像名
+	 */
+	public function resize2($config)
+	{
+		$this->CI->image_lib->initialize($config);
+		$this->CI->image_lib->resize();
 	}
 }

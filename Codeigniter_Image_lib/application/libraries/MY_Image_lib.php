@@ -5,272 +5,168 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 class MY_Image_lib extends CI_Image_lib
 {
+    // /**
+    //  * @var int
+    //  */
+    // private $rounds;
 
-    private $CI;
+    // /**
+    //  * @var string
+    //  */
+    // private $img_path_root;
+    // private $img_path;
+    // private $sub_dir_name;
 
-    private $upload_base   = 'uploads/';
-    private $max_size      = '500';        //500KByteまで
-    private $max_width     = '1024';      //1024px
-    private $max_height    = '1024';      //1024px
-    private $overwrite     = TRUE;        //上書きするか
-    private $allowed_types = 'gif|jpg|png';
+    // /**
+    //  * @var int|string|null
+    //  */
+    // private $randomState;
 
-    public  $upload_error_message = ''; //エラーがあった場合、エラーメッセージを格納する
+    // /**
+    //  * コンストラクタ
+    //  *
+    //  * @param array $params
+    //  *
+    //  * @throws Exception
+    //  */
+    // public function __construct()
+    // {
 
-    private $old_filename = '';       //オリジナルのファイル名
-    private $new_filename = '';       //生成された新しいファイル名
+    //     $config = &get_config();
 
-    public  $upload_filename = array();  //アップロードされたファイル名を格納する配列
-    /**
-     * Constructor
-     *
-     * @access  public
-     * @param   string
-     * @return  void
-     */
-    public function __construct($params = array())
-    {
-        parent::__construct();
+    //     // 画像保存先
+    //     $this->img_path_root = $config['img_path_root'];
 
-        if (count($params) > 0) {
-            $this->initialize($params);
-        }
+    //     // 画像保存先
+    //     $this->img_path = $config['img_path'];
 
-        //file upload classをロード
-        $this->CI = &get_instance();
+    //     $this->sub_dir_name = "";
+    // }
 
-        //log_message('debug', "Image Lib Class Initialized");
-    }
+    // /**
+    //  * 画像保存先設定処理
+    //  *
+    //  * @access		public
+    //  * @param		$img_path_root	保存先ディレクトリ名
+    //  * @param		$img_path		サブディレクトリ名
+    //  * @return		-
+    //  */
+    // public function set_image_path($img_path_root, $img_path = "")
+    // {
+    //     // ここが呼ばれない場合は定義値を参照
+    //     $this->img_path_root = $img_path_root;
+    //     $this->img_path = $img_path;
+    // }
 
-    // --------------------------------------------------------------------
+    // /**
+    //  * ディレクトリ設定処理
+    //  *
+    //  * @access		public
+    //  * @param		$sub_dir_name	サブディレクトリ名
+    //  * @return		-
+    //  */
+    // public function dir_name($sub_dir_name)
+    // {
+    //     $this->sub_dir_name = $sub_dir_name;
+    // }
 
-    /**
-     * ファイルアップロードクラスをロードする
-     * 必須はupload_path モジュール名以下、命名規則に沿って指定
-     * 例）日記の場合は、'diary/XXXXX/XXXXX'など
-     *
-     */
-    public function execute($config = array())
-    {
-        if (isset($config['upload_path'])) {
-            $config['upload_path'] = 'PUBPATH' . $this->upload_base . $config['upload_path'];
-            if (!$this->_path($config['upload_path'])) {
-                return FALSE;
-            }
-        } else {
-            //パスの指定がないものはエラーとする
-            $this->upload_error_message = 'ファイルを格納する場所が未定義です。';
-            return FALSE;
-        }
 
-        if (!isset($config['allowed_types'])) {
-            $config['allowed_types'] = $this->allowed_types;
-        }
+    // /**
+    //  * 画像保存
+    //  *
+    //  * @access		public
+    //  * @param		$param			パラメータ
+    //  * @return		$path			画像ファイル名
+    //  */
+    // public function save_image($param)
+    // {
 
-        if (!isset($config['max_size'])) {
-            $config['max_size']      = $this->max_size;
-        }
+    //     $img_name = "";
+    //     $md = $this->sub_dir_name;
 
-        if (!isset($config['max_width'])) {
-            $config['max_width']     = $this->max_width;
-        }
+    //     if ($this->sub_dir_name) {
+    //         // 画像保存先
+    //         $image_path = $this->img_path_root . $md . "/";
+    //     }
 
-        if (!isset($config['max_height'])) {
-            $config['max_height']    = $this->max_height;
-        }
+    //     // ディレクトリ確認
+    //     if (!file_exists($image_path)) {
+    //         $res = mkdir($image_path, 0777, TRUE);
+    //     }
 
-        if (!isset($config['overwrite'])) {
-            $config['overwrite']     = $this->overwrite;
-        }
+    //     // ランダムファイル名
+    //     $random_name = $this->_makeRandStr(8);
 
-        $this->CI->load->library('upload', $config);
-    }
+    //     // 拡張子
+    //     $ext = "";
+    //     $param['extension'] = strtolower($param['type']);
 
-    /**
-     * 指定のフィールド名のファイルがアップロードされているかどうかを返却
-     * @params  string  field name
-     * @params  bool    TRUE or FALSE
-     *
-     */
-    public function is_upload($name)
-    {
+    //     if ($param['extension'] = "jpg") {
+    //         $ext = ".jpg";
+    //     } else if ($param['extension'] = "jpeg") {
+    //         $ext = ".jpeg";
+    //     } else if ($param['extension'] = "png") {
+    //         $ext = ".png";
+    //     } else if ($param['extension'] = "tif") {
+    //         $ext = ".tif";
+    //     } else if ($param['extension'] = "heic") {
+    //         $ext = ".heic";
+    //     } else {
+    //         $ext = ".jpg";
+    //     }
 
-        if ($this->CI->upload->do_upload($name)) {
-            //変更箇所（is_uploaded → do_upload)
-            return TRUE;
-        } else {
-            return FALSE;
-        }
-    }
+    //     // アップロードファイル名
+    //     $upload_path = sprintf("%s%s%s", $image_path, $random_name, $ext);
 
-    /**
-     * 保存ディレクトリが存在しているかを調査する
-     *
-     *
-     */
-    private function _path($path)
-    {
-        if (is_dir($path)) {
-            if (is_writable($path) !== TRUE) {
-                $this->upload_error_message = 'ファイルを書き込む権限がありません。';
-                return FALSE;
-            } else {
-                return TRUE;
-            }
-        } else {
-            //存在していない場合は、その場所を作成する
-            if (mkdir($path, 0777, TRUE)) {
-                return TRUE;
-            }
-            $this->upload_error_message = 'ファイルを格納する場所が作成できません。';
-            return FALSE;
-        }
-    }
+    //     $img_name = sprintf("%s/%s%s", $md, $random_name, $ext);
 
-    /**
-     * 画像を複数枚にコンバートする。変換する画像のサイズを配列で受け取る。
-     * array('120', 180', '76',50)の場合、それぞれのサイズにリサイズする
-     * オリジナル画像を保存する場合は、リネームして新しく保存する
-     * @params  string field name
-     * @params  array  convert size
-     * @params  bool   original image deleted default FALSE
-     * @params  bool   original image renamed default TRUE
-     *
-     */
-    public function convert_image($column, $option, $deleted = FALSE, $rename = TRUE)
-    {
-        if (!$column) {
-            return FALSE;
-        }
-        if (!$option) {
-            return '';      //何もしない
-        }
+    //     // ファイル保存
+    //     $res = 0;
+    //     $fileData = base64_decode($param['base64']);
+    //     $res = file_put_contents($upload_path, $fileData);
 
-        if (!is_array($option)) {
-            $option = (array)$option;
-        }
+    //     if ($res == 0) {
+    //         // TODO:エラー
+    //         return "";
+    //     }
 
-        $this->new_filename = '';
-        $this->old_filename = '';
+    //     return $img_name;
+    // }
 
-        if (!$this->CI->upload->do_upload($column)) {
-            $this->upload_error_message = $this->CI->upload->display_errors();
-            return FALSE;
-        } else {
-            //ファイル名を生成
-            $this->_filename();
+    // /**
+    //  * ランダム文字列作成
+    //  *
+    //  * @access		public
+    //  * @param		$length		文字数
+    //  * @return		ランダム文字列
+    //  */
+    // private function _makeRandStr($length)
+    // {
+    //     $str = array_merge(range('a', 'z'), range('0', '9'), range('A', 'Z'));
+    //     $r_str = null;
+    //     for ($i = 0; $i < $length; $i++) {
+    //         $r_str .= $str[rand(0, count($str) - 1)];
+    //     }
+    //     return $r_str;
+    // }
 
-            $image_data = $this->CI->upload->data($column);
+    // public function resize($path, $file)
+    // {
+    //     $config['image_library'] = 'gd2';
+    //     //処理を施すもとになる画像の ファイル名/パス を指定します。パスは、URLではなく、サーバの相対、または、絶対パスを指定する必要があります。
+    //     $config['source_image'] = $path;
+    //     //画像処理メソッドに、サムネイルを作成するかどうかを設定します。FALSEにするとリサイズされた画像のみ保存される。
+    //     $config['create_thumb'] = TRUE;
+    //     //リサイズされるときや、固定の値を指定したとき、もとの画像のアスペクト比を維持するかどうかを指定します。
+    //     $config['maintain_ratio'] = TRUE;
+    //     //サムネイルの識別子を指定します。ここで指定したものが拡張子の直前に挿入されます。mypic.jpg の場合はmypic_thumb.jpg になります。
+    //     // $config['thumb_marker'] = '_kanemoto';
+    //     $config['width'] = 150;
+    //     $config['height'] = 75;
+    //     //次の設定項目にパスまたは新しいファイル名(あるいはその両方)を指定すると、 リサイズメソッドでは画像ファイルのコピーが作成されます(元画像はそのまま保存されます):
+    //     $config['new_image'] = './uploads/' . $file;
 
-            //元のサイズを保存する場合（縮小なしで保存）
-            if ($rename) {
-                $option[] = '';
-            }
-
-            foreach ($option as $val) {
-                if (!$this->_image_risize($image_data, $val)) {
-                    return FALSE;
-                }
-                $this->upload_filename[$column]['new_filename'] = $this->new_filename;
-                $this->upload_filename[$column]['old_filename'] = $this->old_filename;
-            }
-
-            if ($deleted) {
-                unlink($image_data['full_path']);
-            }
-
-            return TRUE;
-        }
-    }
-
-    private function _filename()
-    {
-        $u_id = $this->CI->session->userdata('user_id');
-
-        $filename_prefix = date('Y') . date('m') . $u_id;
-        $file_token = md5(uniqid($filename_prefix));
-
-        $this->file_token = $file_token;
-    }
-
-    private function _image_risize($img_data, $size = '')
-    {
-        //サイズが指定されていない場合は、ファイルそのものをコピーする
-        if (!$size) {
-            if (!copy($img_data['full_path'], $img_data['file_path'] . $this->file_token . $img_data['file_ext'])) {
-                $this->upload_error_message = 'ファイルのコピーに失敗しました。';
-                return FALSE;
-            } else {
-                return TRUE;
-            }
-        } else {
-            //画像操作
-            $img_conf['image_library']  = 'gd2';
-            $img_conf['source_image']   = $img_data['full_path'];
-            $img_conf['create_thumb']   = FALSE;
-            $img_conf['maintain_ratio'] = TRUE;
-            $img_conf['new_image']      = $img_data['file_path'] . $this->file_token . $img_data['file_ext'];
-
-            $s_width  = $img_data['image_width'];
-            $s_height = $img_data['image_height'];
-            $w = $size;
-            $h = $size;
-            if (!$w) $w = $s_width;
-            if (!$h) $h = $s_height;
-            $image_resize = $this->_create_image_size($s_width, $s_height, $w, $h);
-
-            //指定サイズで処理
-            $img_conf['width']  = $image_resize['width'];
-            $img_conf['height'] = $image_resize['height'];
-            $img_conf['new_image'] = $img_data['file_path'] . $size . '_' . $this->file_token . $img_data['file_ext'];
-            $this->initialize($img_conf);
-            if ($this->resize()) {
-                $this->new_filename = $this->file_token . $img_data['file_ext'];
-                $this->old_filename = $img_data['file_name'];
-                return TRUE;
-            } else {
-                $this->clear();
-                $this->upload_error_message = '画像リサイズ時にエラーが発生しました。';
-                return FALSE;
-            }
-        }
-    }
-
-    private function _create_image_size($s_w, $s_h, $w, $h)
-    {
-        // リサイズの必要がない場合
-        if ($s_w <= $w && $s_h <= $h) {
-            //そのまま
-            $img_resize['width']  = $s_w;
-            $img_resize['height'] = $s_h;
-        } else {
-            // 出力サイズ変更
-            $o_width  = $s_w;
-            $o_height = $s_h;
-
-            if ($w < $s_w) {
-                $o_width  = $w;
-                $o_height = $s_h * $w / $s_w;
-                if ($o_height < 1) {
-                    $o_height = 1;
-                }
-            }
-            if ($h < $o_height && $h < $s_h) {
-                $o_width  = $s_w * $h / $s_h;
-                $o_height = $h;
-                if ($o_width < 1) {
-                    $o_width = 1;
-                }
-            }
-
-            $img_resize['width']  = $o_width;
-            $img_resize['height'] = $o_height;
-        }
-
-        return $img_resize;
-    }
+    //     $this->initialize($config);
+    //     $this->resize();
+    // }
 }
-// END MYNETS_Image_lib Class
-
-/* End of file MYNETS_Image_lib.php */
-/* Location: ./system/mynets/libraries/MYNETS_Image_lib.php */

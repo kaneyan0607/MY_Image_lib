@@ -205,12 +205,15 @@ class Image_func
 		// --------------------------------------------------
 		//画像リサイズ処理($configがFAlSEならアップロード処理のみ)
 		// --------------------------------------------------
-		if ($config) {
+		if (!$config) {
+			$param = [
+				'full_path' => $file_path
+			];
+		} else {
 			//gd2ライブラリ読み込み
 			$config['image_library'] = 'gd2';
 			//処理を施すもとになる画像の ファイル名/パス を指定。パスは、URLではなく、サーバの相対、または、絶対パスを指定する必要。
 			$config['source_image'] = $file_path;
-
 			//FALSEだとリサイズ処理した画像のみ保存(サムネの保存先パス返り値設定処理)
 			if ($config['create_thumb']) {
 				//new_imageにパスを指定すると、 そのパスにリサイズした画像を保存できる。
@@ -253,10 +256,6 @@ class Image_func
 				return FALSE;
 				exit;
 			}
-		} else {
-			$param = [
-				'full_path' => $file_path
-			];
 		}
 		return $param;
 	}

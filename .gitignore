@@ -17,4 +17,5 @@ application/logs/*
 /vendor/
 uploads/
 upload2/
+upload3/
 save_image/

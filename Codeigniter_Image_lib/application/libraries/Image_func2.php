@@ -15,7 +15,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 /**
  * Class ImageFunc
  */
-class Image_func
+class Image_func2
 {
 	/**
 	 * @var int
@@ -122,21 +122,19 @@ class Image_func
 		$this->type = $type;
 	}
 
-
 	/**
-	 * 画像保存(リサイズ処理も含む)
+	 * 画像保存(リサイズ処理しない。コントローラで再度リサイズを呼び出すタイプ)
 	 *
 	 * @access		public
 	 * @param		$fileData		パラメータ
 	 * @param		$config			リサイズ処理
 	 * @return		$path			画像ファイル名
 	 */
-	public function save_image($fileData, $config = FALSE)
+	public function save_image2($fileData)
 	{
 
 		//ファイルのデコード
 		$decode_Data = base64_decode($fileData);
-		$param = array();
 
 		//画像保存先（サブディレクトリの指定が無い場合は空白がくる）
 		if ($this->sub_dir_name === "") {
@@ -181,83 +179,24 @@ class Image_func
 		//パス、ファイル名、拡張子からフルパスを作成
 		$file_path = $image_path . $this->file_name . "." . $this->type;
 		$file_name = $this->file_name . "." . $this->type;
-
-		// 同一ファイル名があるか判定。同一ファイル名があればランダム文字列を生成
-		if (file_exists($file_path)) {
-			// ランダムファイル名
-			$random_name = $this->_makeRandStr(8);
-			$this->set_file_name($random_name);
-
-			//パス、ファイル名、拡張子からフルパスを作成
-			$file_path = $image_path . $this->file_name . "." . $this->type;
-			$file_name = $this->file_name . "." . $this->type;
-		}
-
 		// ファイル保存
 		$res = 0;
 		$res = file_put_contents($file_path, $decode_Data);
 
-		if ($res === 0) {
+		if ($res == 0) {
 			// TODO:エラー
 			return FALSE;
+			exit;
 		}
 
-		// --------------------------------------------------
-		//画像リサイズ処理($configがFAlSEならアップロード処理のみ)
-		// --------------------------------------------------
-		if ($config) {
-			//gd2ライブラリ読み込み
-			$config['image_library'] = 'gd2';
-			//処理を施すもとになる画像の ファイル名/パス を指定。パスは、URLではなく、サーバの相対、または、絶対パスを指定する必要。
-			$config['source_image'] = $file_path;
+		$param = [
+			'full_path' => $file_path,
+			'image_path' => $image_path,
+			'file_name' => $file_name,
+			'base_name' => $this->file_name,
+			'type' => $this->type
+		];
 
-			//FALSEだとリサイズ処理した画像のみ保存(サムネの保存先パス返り値設定処理)
-			if ($config['create_thumb']) {
-				//new_imageにパスを指定すると、 そのパスにリサイズした画像を保存できる。
-				if (empty($config['new_image'])) {
-					if (empty($config['thumb_marker'])) {
-						//何も設定がされてないサムネパス;
-						$thumb_path = $image_path . $this->file_name . '_thumb' . "." . $this->type;
-					} else {
-						//サムネ名を指定したサムネパス;
-						$thumb_path = $image_path . $this->file_name . $config['thumb_marker'] . "." . $this->type;
-					}
-				} else {
-					if (empty($config['thumb_marker'])) {
-						//新しい保存場所を指定しているサムネパス;
-						$thumb_path = $config['new_image'] . $this->file_name . '_thumb' . "." . $this->type;
-					} else {
-						//新しい保存場所を指定してサムネ名も指定しているサムネパス;
-						$thumb_path = $config['new_image'] . $this->file_name . $config['thumb_marker'] . "." . $this->type;
-					}
-				}
-				$param = [
-					'full_path' => $file_path,
-					'thumb_path' => $thumb_path
-				];
-			} else {
-				//リサイズした画像のみ保存する処理
-				if (empty($config['new_image'])) {
-					$resize_path = $file_path;
-				} else {
-					$resize_path = $config['new_image'] . $file_name;
-				}
-				$param = [
-					'full_path' => $resize_path
-				];
-			}
-			//画像リサイズ処理
-			$result = $this->resize($config);
-			if (!$result) {
-				//リサイズエラー
-				return FALSE;
-				exit;
-			}
-		} else {
-			$param = [
-				'full_path' => $file_path
-			];
-		}
 		return $param;
 	}
 
@@ -276,23 +215,5 @@ class Image_func
 			$r_str .= $str[rand(0, count($str) - 1)];
 		}
 		return $r_str;
-	}
-
-
-	/**
-	 * 画像リサイズ(ライブラリ読み込み)
-	 *
-	 * @access		public
-	 * @param		$path リサイズ元画像パス
-	 * @param       $file リサイズ元画像名
-	 */
-	public function resize($config)
-	{
-		$this->CI->image_lib->initialize($config);
-		if (!$this->CI->image_lib->resize()) {
-			return $this->CI->image_lib->display_errors();
-		} else {
-			return TRUE;
-		}
 	}
 }

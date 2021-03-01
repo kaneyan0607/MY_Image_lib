@@ -191,7 +191,6 @@ class Image_func
 			$this->set_file_name($name_info['filename']);
 			$file_path = $image_path . $this->file_name . "." . $this->type;
 			$file_name = $this->file_name . "." . $this->type;
-			echo '画像名違う<br>';
 		}
 
 		// ファイル保存

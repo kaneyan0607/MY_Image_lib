@@ -133,7 +133,7 @@ class Upload extends CI_Controller
         $this->image_func->sub_dir_name($md);
 
         // ファイル名指定（指定しないとランダム名）
-        $this->image_func->set_file_name('irasutoya!test28');
+        $this->image_func->set_file_name('irasutoya!test29');
 
         //拡張子（指定しないと適したものを自動取得）
         // $this->image_func->file_type('jpg');

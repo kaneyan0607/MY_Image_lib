@@ -182,15 +182,16 @@ class Image_func
 		$file_path = $image_path . $this->file_name . "." . $this->type;
 		$file_name = $this->file_name . "." . $this->type;
 
-		// 同一ファイル名があるか判定。同一ファイル名があればランダム文字列を生成
-		if (file_exists($file_path)) {
-			// ランダムファイル名
-			$random_name = $this->_makeRandStr(8);
-			$this->set_file_name($random_name);
+		// 同一ファイル名があるか判定。同一ファイル名があれば連番を付ける
+		$new_name = $this->unique_filename($file_path);
 
-			//パス、ファイル名、拡張子からフルパスを作成
+		//もしも同一ファイル名があった場合、ファイル名を更新
+		if (!($new_name === $file_path)) {
+			$name_info = pathinfo($new_name);
+			$this->set_file_name($name_info['filename']);
 			$file_path = $image_path . $this->file_name . "." . $this->type;
 			$file_name = $this->file_name . "." . $this->type;
+			echo '画像名違う<br>';
 		}
 
 		// ファイル保存
@@ -292,6 +293,31 @@ class Image_func
 			return $this->CI->image_lib->display_errors();
 		} else {
 			return TRUE;
+		}
+	}
+
+	/**
+	 * 同一ファイル名の有無判定（あれば連番をつける）
+	 *
+	 * @access      public
+	 * @param       $org_path　画像パス
+	 * @param       $num    連番
+	 */
+	public function unique_filename($org_path, $num = 0)
+	{
+		if ($num > 0) {
+			$info = pathinfo($org_path);
+			$path = $info['dirname'] . "/" . $info['filename'] . "_" . $num;
+			if (isset($info['extension'])) $path .= "." . $info['extension'];
+		} else {
+			$path = $org_path;
+		}
+		if (file_exists($path)) {
+			$num++;
+			//再帰
+			return $this->unique_filename($org_path, $num);
+		} else {
+			return $path;
 		}
 	}
 }

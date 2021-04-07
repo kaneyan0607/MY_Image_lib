@@ -156,7 +156,7 @@ class Image_func
 		if ($this->file_name === "") {
 			// ランダムファイル名
 			$random_name = $this->_makeRandStr(8);
-			$this->set_file_name($random_name);
+			$this->file_name = $random_name;
 		}
 
 		// 拡張子判定
@@ -176,7 +176,7 @@ class Image_func
 			];
 
 			$type = $extensions[$mime_type];
-			$this->file_type($type);
+			$this->type = $type;
 		}
 
 		//パス、ファイル名、拡張子からフルパスを作成
@@ -189,7 +189,7 @@ class Image_func
 		//もしも同一ファイル名があった場合、ファイル名を更新
 		if (!($new_name === $file_path)) {
 			$name_info = pathinfo($new_name);
-			$this->set_file_name($name_info['filename']);
+			$this->file_name = $name_info['filename'];
 			$file_path = $image_path . $this->file_name . "." . $this->type;
 			$file_name = $this->file_name . "." . $this->type;
 		}

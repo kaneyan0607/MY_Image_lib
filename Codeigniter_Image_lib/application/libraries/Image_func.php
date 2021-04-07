@@ -67,7 +67,8 @@ class Image_func
 		//ファイル名
 		$this->file_name = "";
 
-		//image_libライブラリをロード
+		//image_libライブラリをロード　補助的なクラス作成　https://codeigniter.jp/user_guide/3/general/ancillary_classes.html
+		//クラスをコントローラから切り離して作りつつも CodeIgniter のあらゆるリソースを利用したい場合にget_instance()を使用
 		$this->CI = &get_instance();
 	}
 

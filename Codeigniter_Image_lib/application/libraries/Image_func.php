@@ -134,10 +134,15 @@ class Image_func
 	 */
 	public function save_image($fileData, $config = FALSE)
 	{
-
 		//ファイルのデコード
 		$decode_Data = base64_decode($fileData);
-		$param = array();
+
+		//返り値の連想配列
+		$param = [
+			'full_path' => "",
+			'thumb_path' => "",
+			'error_info' => ""
+		];
 
 		//画像保存先（サブディレクトリの指定が無い場合は空白がくる）
 		if ($this->sub_dir_name === "") {
@@ -200,16 +205,16 @@ class Image_func
 
 		if ($res === 0) {
 			// TODO:エラー
-			return FALSE;
+			$param['error_info'] = 'オリジナル画像保存失敗';
+			return $param;
 		}
 
 		// --------------------------------------------------
 		//画像リサイズ処理($configがFAlSEならアップロード処理のみ)
 		// --------------------------------------------------
 		if (!$config) {
-			$param = [
-				'full_path' => $file_path
-			];
+			$param['full_path'] = $file_path;
+			return $param;
 		} else {
 			//gd2ライブラリ読み込み
 			$config['image_library'] = 'gd2';
@@ -235,10 +240,8 @@ class Image_func
 						$thumb_path = $config['new_image'] . $this->file_name . $config['thumb_marker'] . "." . $this->type;
 					}
 				}
-				$param = [
-					'full_path' => $file_path,
-					'thumb_path' => $thumb_path
-				];
+				$param['full_path'] = $file_path;
+				$param['thumb_path'] = $thumb_path;
 			} else {
 				//リサイズした画像のみ保存する処理
 				if (empty($config['new_image'])) {
@@ -246,16 +249,13 @@ class Image_func
 				} else {
 					$resize_path = $config['new_image'] . $file_name;
 				}
-				$param = [
-					'full_path' => $resize_path
-				];
+				$param['thumb_path'] = $resize_path;
 			}
 			//画像リサイズ処理
 			$result = $this->resize($config);
-			if (!$result) {
+			if ($result) {
 				//リサイズエラー
-				return FALSE;
-				exit;
+				$param['error_info'] = $result;
 			}
 		}
 		return $param;
@@ -290,9 +290,11 @@ class Image_func
 	{
 		$this->CI->image_lib->initialize($config);
 		if (!$this->CI->image_lib->resize()) {
+			//エラーは文字列で返す。
 			return $this->CI->image_lib->display_errors();
 		} else {
-			return TRUE;
+			//エラーは文字列で返すので成功時はFALSEを返す。
+			return FALSE;
 		}
 	}
 
